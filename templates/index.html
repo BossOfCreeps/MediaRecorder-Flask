@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+    function start() {
+        return new Promise(resolve => {
+            navigator.mediaDevices.getUserMedia({audio: true})
+                .then(stream => {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.audioChunks = [];
+                    this.mediaRecorder.addEventListener('dataavailable', event => {
+                        this.audioChunks.push(event.data);
+                    });
+
+                    this.mediaRecorder.start();
+                });
+        });
+    }
+
+    function stop() {
+        this.mediaRecorder.stop();
+    }
+
+
+    function getData() {
+        let blob = new Blob(this.audioChunks, {type: 'audio/wav;codecs=opus'});
+        let reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            let base64data = reader.result;
+
+
+            $.ajax({
+                type: "POST",
+                url: '/test',
+                data: base64data,
+                type: "POST",
+                success: function(response) {
+                    alert(response)
+                    //var json = jQuery.parseJSON(response)
+                    //$('#len').html(json.len)
+                    //console.log(response);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        };
+    }
+</script>
+
+<input type="button" value="start" onclick="start()"></br>
+<input type="button" value="stop" onclick="stop()"></br>
+<input type="button" value="getData" onclick="getData()"></br>
+
+</body>
+</html>
